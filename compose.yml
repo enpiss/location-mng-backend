@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: "${DB_USERNAME:-user}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-password}"
+      POSTGRES_DB: "${DB_NAME:-rental_management}"
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - rental_mng_db_data:/var/lib/postgresql/data
+    networks:
+      - rental_mng_backend
+volumes:
+  rental_mng_db_data:
+networks:
+  rental_mng_backend:
