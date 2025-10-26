@@ -3,6 +3,7 @@ import { AbstractEntity } from '../../../common/abstract.entity';
 import { User } from '../../user/entities/user.entity';
 import { Logement } from '../../logement/entities/logement.entity';
 import { Paiement } from '../../paiement/entities/paiement.entity';
+import { EcheanceLoyer } from '../../echeances-loyer/entities/echeances-loyer.entity';
 
 @Entity({ name: 'locataires' })
 export class Locataire extends AbstractEntity {
@@ -40,4 +41,9 @@ export class Locataire extends AbstractEntity {
     cascade: true,
   })
   paiements: Paiement[];
+
+  @OneToMany(() => EcheanceLoyer, (echeance) => echeance.locataire, {
+    onDelete: 'SET NULL',
+  })
+  echeanceLoyer: EcheanceLoyer[];
 }

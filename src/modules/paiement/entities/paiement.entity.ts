@@ -1,6 +1,7 @@
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { Locataire } from '../../locataire/entities/locataire.entity';
+import { AffectationPaiement } from '../../echeances-loyer/entities/affectation-paiement.entity';
 
 @Entity({ name: 'paiements' })
 export class Paiement extends AbstractEntity {
@@ -10,6 +11,11 @@ export class Paiement extends AbstractEntity {
     eager: true,
   })
   locataire: Locataire;
+
+  @OneToMany(() => AffectationPaiement, (affectation) => affectation.Paiement, {
+    onDelete: 'SET NULL',
+  })
+  affectationsPaiement: AffectationPaiement[];
 
   @Column('decimal', { precision: 10, scale: 2 })
   amount: number;

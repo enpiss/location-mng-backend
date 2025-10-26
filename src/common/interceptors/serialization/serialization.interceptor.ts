@@ -2,6 +2,7 @@ import {
   CallHandler,
   ExecutionContext,
   Injectable,
+  Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import { map } from 'rxjs/operators';
@@ -10,12 +11,17 @@ import { type ClassConstructor, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class SerializationInterceptor<T> implements NestInterceptor {
+  private logger = new Logger(SerializationInterceptor.name);
   constructor(private classConstructor: ClassConstructor<T>) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       map((data: unknown) => {
-        console.log('SerializationInterceptor data:', data);
+        this.logger.debug({
+          message: 'Serializing response',
+          class: this.classConstructor.name,
+          data,
+        });
         return this.serialize(data);
       }),
     );

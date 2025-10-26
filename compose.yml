@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:15-alpine
+    container_name: rental_mng_db
     env_file:
       - .env
     environment:
@@ -13,6 +14,32 @@ services:
       - rental_mng_db_data:/var/lib/postgresql/data
     networks:
       - rental_mng_backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+#  app:
+#    container_name: rental_mng_backend
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    env_file:
+#      - .env.development.local
+#    environment:
+#      DB_HOST: db
+#      DB_PORT: "5432"
+#      DB_USERNAME: "${DB_USERNAME:-user}"
+#      DB_PASSWORD: "${DB_PASSWORD:-password}"
+#      DB_NAME: "${DB_NAME:-rental_management}"
+#    ports:
+#      - "${DOCKER_PORT:-8000}:${PORT:-3000}"
+#    depends_on:
+#      - db
+#    networks:
+#      - rental_mng_backend
+
 volumes:
   rental_mng_db_data:
 networks:

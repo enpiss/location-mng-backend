@@ -8,6 +8,8 @@ import { LocataireModule } from './modules/locataire/locataire.module';
 import { LogementModule } from './modules/logement/logement.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PaiementModule } from './modules/paiement/paiement.module';
+import { EcheancesLoyerModule } from './modules/echeances-loyer/echeances-loyer.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -23,13 +25,15 @@ import { PaiementModule } from './modules/paiement/paiement.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true, // Note: set to false in production
+      synchronize: process.env.NODE_ENV !== 'production',
     }),
+    ScheduleModule.forRoot(),
     UserModule,
     LocataireModule,
     LogementModule,
     AuthModule,
     PaiementModule,
+    EcheancesLoyerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
