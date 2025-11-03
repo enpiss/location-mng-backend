@@ -13,7 +13,7 @@ export class SearchEcheanceLoyerDto extends PageOptionsDto {
   @IsOptional()
   @Type(() => Number)
   @IsDecimal()
-  readonly minAmountDue?: number;
+  minAmountDue?: number;
 
   @ApiProperty({
     description: "Montant maximum dû pour l'échéance",
@@ -23,7 +23,7 @@ export class SearchEcheanceLoyerDto extends PageOptionsDto {
   @IsOptional()
   @Type(() => Number)
   @IsDecimal()
-  readonly maxAmountDue?: number;
+  maxAmountDue?: number;
 
   @ApiProperty({
     description: "Montant minimum payé pour l'échéance",
@@ -33,7 +33,7 @@ export class SearchEcheanceLoyerDto extends PageOptionsDto {
   @IsOptional()
   @Type(() => Number)
   @IsDecimal()
-  readonly minAmountPaid?: number;
+  minAmountPaid?: number;
 
   @ApiProperty({
     description: "Montant maximum payé pour l'échéance",
@@ -43,7 +43,7 @@ export class SearchEcheanceLoyerDto extends PageOptionsDto {
   @IsOptional()
   @Type(() => Number)
   @IsDecimal()
-  readonly maxAmountPaid?: number;
+  maxAmountPaid?: number;
 
   @ApiProperty({
     description: "Clé du mois correspondant à l'échéance (format YYYY-MM)",
@@ -53,7 +53,7 @@ export class SearchEcheanceLoyerDto extends PageOptionsDto {
   @IsOptional()
   @IsString()
   @Length(7, 7)
-  readonly monthKey?: string;
+  monthKey?: string;
 
   @ApiProperty({
     description: "ID du locataire associé à l'échéance",
@@ -62,7 +62,7 @@ export class SearchEcheanceLoyerDto extends PageOptionsDto {
   })
   @IsOptional()
   @IsString()
-  readonly locataireId?: string;
+  locataireId?: string;
 
   @ApiProperty({
     description: "Statut de l'échéance (DUE, PARTIAL, PAID)",
@@ -72,5 +72,5 @@ export class SearchEcheanceLoyerDto extends PageOptionsDto {
   })
   @IsOptional()
   @IsString()
-  readonly status?: EcheanceStatus[];
+  status?: EcheanceStatus[];
 }

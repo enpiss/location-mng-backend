@@ -115,10 +115,15 @@ export class EcheancesLoyerService {
   }
 
   findAll(searchEcheanceLoyerDto: SearchEcheanceLoyerDto) {
-    const { skip, limit = 10 } = searchEcheanceLoyerDto;
+    const {
+      skip,
+      limit = 10,
+      orderBy = 'monthKey',
+      order = 'DESC',
+    } = searchEcheanceLoyerDto;
     return this.echeanceLoyerRepository.find({
       relations: ['locataire'],
-      order: { monthKey: 'ASC' },
+      order: { [orderBy]: order },
       where: {
         ...(searchEcheanceLoyerDto.locataireId && {
           locataire: { id: searchEcheanceLoyerDto.locataireId },

@@ -12,7 +12,7 @@ export class Paiement extends AbstractEntity {
   })
   locataire: Locataire;
 
-  @OneToMany(() => AffectationPaiement, (affectation) => affectation.Paiement, {
+  @OneToMany(() => AffectationPaiement, (affectation) => affectation.paiement, {
     onDelete: 'SET NULL',
   })
   affectationsPaiement: AffectationPaiement[];

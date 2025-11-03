@@ -5,10 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EcheanceLoyer } from './entities/echeances-loyer.entity';
 import { AffectationPaiement } from './entities/affectation-paiement.entity';
 import { Locataire } from '../locataire/entities/locataire.entity';
+import { AffectationPaiementService } from './affectation-paiement/affectation-paiement.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([EcheanceLoyer, AffectationPaiement, Locataire])],
+  imports: [
+    TypeOrmModule.forFeature([EcheanceLoyer, AffectationPaiement, Locataire]),
+  ],
   controllers: [EcheancesLoyerController],
-  providers: [EcheancesLoyerService],
+  providers: [EcheancesLoyerService, AffectationPaiementService],
+  exports: [EcheancesLoyerService, AffectationPaiementService],
 })
 export class EcheancesLoyerModule {}

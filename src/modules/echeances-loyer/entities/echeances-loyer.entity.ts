@@ -19,7 +19,7 @@ export class EcheanceLoyer extends AbstractEntity {
 
   @OneToMany(
     () => AffectationPaiement,
-    (affectation) => affectation.EcheanceLoyer,
+    (affectation) => affectation.echeanceLoyer,
     {
       onDelete: 'SET NULL',
     },

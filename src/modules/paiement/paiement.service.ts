@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { CreatePaiementDto } from './dto/create-paiement.dto';
@@ -7,16 +7,23 @@ import { SearchPaiementDto } from './dto/search-paiement.dto';
 import { Paiement } from './entities/paiement.entity';
 import { PageDto } from '../../common/dto/page.dto';
 import { LocataireService } from '../locataire/locataire.service';
+import { PaiementEvent } from './events/paiement.event';
 
 @Injectable()
 export class PaiementService {
+  private readonly logger = new Logger(PaiementService.name);
   constructor(
     @InjectRepository(Paiement)
     private paiementRepository: Repository<Paiement>,
     private locataireService: LocataireService,
+    private paiementEvent: PaiementEvent,
   ) {}
 
   async create(createPaiementDto: CreatePaiementDto) {
+    this.logger.log({
+      message: 'Creating paiement',
+      createPaiementDto,
+    });
     // determine monthKey from paidAt
     const paidAtDate = new Date(createPaiementDto.paidAt);
     const month = (paidAtDate.getMonth() + 1).toString().padStart(2, '0');
@@ -32,12 +39,19 @@ export class PaiementService {
       throw new HttpException('Locataire introuvable', 404);
     }
 
-    const paiement = this.paiementRepository.create({
+    const paiementData = this.paiementRepository.create({
       ...createPaiementDto,
       monthKey,
       locataire: { id: createPaiementDto.locataireId },
     });
-    return await this.paiementRepository.save(paiement);
+
+    const paiement = await this.paiementRepository.save(paiementData);
+
+    this.paiementEvent.created({
+      paiement: paiement,
+    });
+
+    return paiement;
   }
 
   async findAll(searchOptionsDto: SearchPaiementDto) {

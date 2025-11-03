@@ -1,5 +1,5 @@
 import { AbstractEntity } from '../../../common/abstract.entity';
-import { Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { Paiement } from '../../paiement/entities/paiement.entity';
 import { EcheanceLoyer } from './echeances-loyer.entity';
 
@@ -10,19 +10,15 @@ export class AffectationPaiement extends AbstractEntity {
     onDelete: 'CASCADE',
     eager: true,
   })
-  EcheanceLoyer: EcheanceLoyer;
+  echeanceLoyer: EcheanceLoyer;
 
   @ManyToOne(() => Paiement, (paiement) => paiement.affectationsPaiement, {
     nullable: false,
     onDelete: 'CASCADE',
     eager: true,
   })
-  Paiement: Paiement;
+  paiement: Paiement;
 
-  @ManyToOne(() => Paiement, (paiement) => paiement.affectationsPaiement, {
-    nullable: false,
-    onDelete: 'CASCADE',
-    eager: true,
-  })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
 }

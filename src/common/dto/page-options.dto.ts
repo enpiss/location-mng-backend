@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, Min, IsOptional, IsNumber } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class PageOptionsDto {
   @ApiProperty({
@@ -12,7 +12,7 @@ export class PageOptionsDto {
   @IsNumber()
   @Min(1)
   @IsOptional()
-  readonly page = 1;
+  page?: number = 1;
 
   @ApiProperty({
     description: "Nombre d'éléments par page",
@@ -23,9 +23,30 @@ export class PageOptionsDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  readonly limit = 10;
+  limit?: number = 10;
+
+  @ApiProperty({
+    description: 'Ordre des résultats (ASC ou DESC)',
+    example: 'ASC',
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => String)
+  @Transform(({ value }) => (value as string).toUpperCase())
+  order?: 'ASC' | 'DESC' = 'ASC';
+
+  @ApiProperty({
+    description: 'Ordonnement des résultats (champ)',
+    example: 'createdAt',
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => String)
+  orderBy?: string = 'createdAt';
 
   get skip(): number {
-    return (this.page - 1) * this.limit;
+    const page = this.page ?? 1;
+    const limit = this.limit ?? 10;
+    return (page - 1) * limit;
   }
 }

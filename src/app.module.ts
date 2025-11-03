@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { PaiementModule } from './modules/paiement/paiement.module';
 import { EcheancesLoyerModule } from './modules/echeances-loyer/echeances-loyer.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ScheduleModule } from '@nestjs/schedule';
       synchronize: process.env.NODE_ENV !== 'production',
     }),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     UserModule,
     LocataireModule,
     LogementModule,
