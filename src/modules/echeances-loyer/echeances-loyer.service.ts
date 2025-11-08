@@ -49,11 +49,6 @@ export class EcheancesLoyerService {
       echeance: echeance,
     });
 
-    // const result = await this.echeanceLoyerRepository.upsert(echeance, {
-    //   conflictPaths: ['monthKey', 'locataire'],
-    //   skipUpdateIfNoValuesChanged: false,
-    // });
-
     const result = await this.echeanceLoyerRepository
       .createQueryBuilder()
       .insert()
@@ -61,7 +56,8 @@ export class EcheancesLoyerService {
       .values(echeance)
       .orUpdate(['amountDue', 'amountPaid'], ['monthKey', 'locataireId'], {
         overwriteCondition: {
-          where: 'amountDue <> :amountDue OR amountPaid <> :amountPaid',
+          where:
+            '"echeances_loyer"."amountDue" <> :amountDue OR "echeances_loyer"."amountPaid" <> :amountPaid',
           parameters: {
             amountDue: echeance.amountDue,
             amountPaid: echeance.amountPaid,
@@ -200,16 +196,6 @@ export class EcheancesLoyerService {
     if (result.affected === 0)
       throw new NotFoundException(`Échéance ${id} introuvable`);
     return { deleted: true };
-  }
-
-  async affectationPaiement(id: string, amountPaid: number) {
-    const echeance = await this.findOne(id);
-    echeance.amountPaid += amountPaid;
-    echeance.status = this.computeEcheanceStatus(
-      echeance.amountDue,
-      echeance.amountPaid,
-    );
-    return this.echeanceLoyerRepository.save(echeance);
   }
 
   computeEcheanceStatus(amountDue: number, amountPaid: number): EcheanceStatus {
