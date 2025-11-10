@@ -51,6 +51,7 @@ export class LocataireService {
     const locataire = this.locataireRepository.create({
       ...createLocataireDto,
       proprietaire: { id: proprietaire.id },
+      logement: { id: createLocataireDto.logementId },
     });
     this.logger.log({ message: 'Creating new locataire', locataire });
     return this.locataireRepository.save(locataire);
@@ -113,10 +114,12 @@ export class LocataireService {
   }
 
   async update(id: string, updateLocataireDto: UpdateLocataireDto) {
-    const result = await this.locataireRepository.update(
-      id,
-      updateLocataireDto,
-    );
+    const result = await this.locataireRepository.update(id, {
+      ...updateLocataireDto,
+      logement: updateLocataireDto.logementId
+        ? { id: updateLocataireDto.logementId }
+        : undefined,
+    });
     if (result.affected && result.affected > 0) {
       return this.findOne(id);
     } else {
