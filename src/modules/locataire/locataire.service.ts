@@ -63,6 +63,7 @@ export class LocataireService {
     const queryBuilder = this.locataireRepository
       .createQueryBuilder('locataire')
       .leftJoinAndSelect('locataire.echeanceLoyer', 'echeanceLoyer')
+      .leftJoinAndSelect('locataire.logement', 'logement')
       .where('1=1')
       // .andWhere(
       //   proprietaireId ? 'locataire.proprietaireId = :proprietaireId' : '1=1',
@@ -97,7 +98,7 @@ export class LocataireService {
   async findOne(id: string) {
     const locataire = await this.locataireRepository.findOne({
       where: { id },
-      relations: ['echeanceLoyer'],
+      relations: ['echeanceLoyer', 'logement'],
     });
 
     if (!locataire) {
