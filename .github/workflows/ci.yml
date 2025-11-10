@@ -30,14 +30,20 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-v2
           restore-keys: |
-            ${{ runner.os }}-pnpm-
+            pnpm-${{ runner.os }}-
 
+      # Installer les dépendances
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --force
 
-      - name: Run code formatter
+      # Vérifier la version de Prettier
+      - name: Check Prettier version
+        run: pnpm exec prettier --version
+
+      # Vérification du format
+      - name: Run code formatter check
         run: pnpm run format:check
 
   lint:
@@ -59,12 +65,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-v2
           restore-keys: |
-            ${{ runner.os }}-pnpm-
+            pnpm-${{ runner.os }}-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --force
 
       - name: Run linter
         run: pnpm run lint
