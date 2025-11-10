@@ -34,4 +34,11 @@ export class CreateLocataireDto {
   })
   @IsUUID('4', { message: 'Le proprietaireId doit être un UUID valide' })
   proprietaireId: string;
+
+  @ApiProperty({
+    description: 'Logement ID associated with the tenant',
+    example: 'uuid-of-logement',
+  })
+  @IsUUID('4', { message: 'Le logementId doit être un UUID valide' })
+  logementId?: string;
 }
