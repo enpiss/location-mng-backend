@@ -11,6 +11,7 @@ import { PaiementModule } from './modules/paiement/paiement.module';
 import { EcheancesLoyerModule } from './modules/echeances-loyer/echeances-loyer.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     AuthModule,
     PaiementModule,
     EcheancesLoyerModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

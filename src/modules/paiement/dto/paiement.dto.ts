@@ -3,7 +3,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import {
   IsDate,
-  IsDecimal,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -20,7 +19,7 @@ export class PaiementDto extends AbstractDto {
   })
   @Type(() => Number)
   @IsNumber({
-    maxDecimalPlaces:2,
+    maxDecimalPlaces: 2,
   })
   @Min(1000, { message: 'Le montant minimum est de 1000 Fcfa' })
   @Expose()

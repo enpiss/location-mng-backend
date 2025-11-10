@@ -8,11 +8,25 @@ import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { type ClassConstructor, plainToInstance } from 'class-transformer';
 
+// Type pour un wrapper de pagination
+interface PaginatedWrapper<T> {
+  data: T[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  [key: string]: unknown;
+}
+
 @Injectable()
-export class SerializationInterceptor<T> implements NestInterceptor {
+export class SerializationInterceptor<T>
+  implements NestInterceptor<unknown, T | T[] | PaginatedWrapper<T>>
+{
   constructor(private classConstructor: ClassConstructor<T>) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Observable<T | T[] | PaginatedWrapper<T>> {
     return next.handle().pipe(
       map((data: unknown) => {
         return this.serialize(data);
@@ -20,7 +34,7 @@ export class SerializationInterceptor<T> implements NestInterceptor {
     );
   }
 
-  private serialize(value: unknown): unknown {
+  private serialize(value: unknown): T | T[] | PaginatedWrapper<T> {
     const options = {
       excludeExtraneousValues: true,
       enableImplicitConversion: true,
@@ -32,20 +46,25 @@ export class SerializationInterceptor<T> implements NestInterceptor {
     }
 
     // Si on reçoit un wrapper (ex: PageDto { data: [...], total, ... })
-    if (
-      value &&
-      typeof value === 'object' &&
-      'data' in value &&
-      Array.isArray((value as any).data)
-    ) {
-      const wrapper = value as any;
+    if (this.isPaginatedWrapper(value)) {
       return {
-        ...wrapper,
-        data: plainToInstance(this.classConstructor, wrapper.data, options),
+        ...value,
+        data: plainToInstance(this.classConstructor, value.data, options),
       };
     }
 
     // Cas général (objet unique)
     return plainToInstance(this.classConstructor, value as object, options);
+  }
+
+  private isPaginatedWrapper(
+    value: unknown,
+  ): value is PaginatedWrapper<unknown> {
+    return (
+      value !== null &&
+      typeof value === 'object' &&
+      'data' in value &&
+      Array.isArray(value.data)
+    );
   }
 }
