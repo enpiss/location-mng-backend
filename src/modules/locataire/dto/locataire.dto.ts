@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { Expose, Type } from 'class-transformer';
 import { EcheanceLoyerDto } from '../../echeances-loyer/dto/echeance-loyer.dto';
+import { LogementDto } from '../../logement/dto/logement.dto';
 
 export class LocataireDto extends AbstractDto {
   @ApiProperty({
@@ -73,4 +74,11 @@ export class LocataireDto extends AbstractDto {
   @Expose()
   @Type(() => EcheanceLoyerDto)
   echeanceLoyer?: EcheanceLoyerDto[] | null;
+
+  @ApiProperty({
+    description: 'Logement associated with the tenant',
+  })
+  @Expose()
+  @Type(() => LogementDto)
+  logement?: LogementDto | null;
 }
