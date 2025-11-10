@@ -2,6 +2,7 @@ import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { Expose, Type } from 'class-transformer';
+import { EcheanceLoyerDto } from '../../echeances-loyer/dto/echeance-loyer.dto';
 
 export class LocataireDto extends AbstractDto {
   @ApiProperty({
@@ -56,4 +57,20 @@ export class LocataireDto extends AbstractDto {
   @IsUUID()
   @Expose()
   proprietaireId: string;
+
+  @ApiProperty({
+    description: 'Le montant total dû par le locataire',
+    example: 1500.75,
+  })
+  @Expose()
+  @Type(() => Number)
+  totalDue?: number;
+
+  @ApiProperty({
+    description: 'Liste des échéances de loyer associées au locataire',
+    example: [],
+  })
+  @Expose()
+  @Type(() => EcheanceLoyerDto)
+  echeanceLoyer?: EcheanceLoyerDto[] | null;
 }

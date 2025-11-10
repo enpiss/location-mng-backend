@@ -29,4 +29,13 @@ export class SearchLocataireDto extends PageOptionsDto {
   @IsString()
   @IsOptional()
   readonly phone?: string;
+
+  @ApiProperty({
+    description: 'Propriétaire ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  proprietaireId?: string;
 }

@@ -6,24 +6,12 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   Min,
 } from 'class-validator';
 import { Expose, Type } from 'class-transformer';
 import { EcheanceStatus } from '../entities/echeances-loyer.entity';
-import { LocataireDto } from '../../locataire/dto/locataire.dto';
 
 export class EcheanceLoyerDto extends AbstractDto {
-  @ApiProperty({
-    description: 'Identifiant du locataire associé à cette échéance',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsUUID()
-  @Expose()
-  locataireId: string;
-
-  locataire?: LocataireDto;
-
   @ApiProperty({
     description: "Clé représentant le mois et l'année (format YYYY-MM)",
     example: '2025-10',
