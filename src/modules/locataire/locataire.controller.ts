@@ -54,7 +54,6 @@ export class LocataireController {
     @Param('id') id: string,
     @Body() updateLocataireDto: UpdateLocataireDto,
   ) {
-    console.log('Upddddzodpkzpodkzpodating locataire with ID:', id);
     return this.locataireService.update(id, updateLocataireDto);
   }
 
