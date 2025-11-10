@@ -12,35 +12,26 @@ on:
 jobs:
   format:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-
       # Installer pnpm
       - name: Install pnpm
-        run: npm install -g pnpm
+        uses: pnpm/action-setup@v4
 
-      # Cache pnpm store
-      - name: Cache pnpm
-        uses: actions/cache@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          path: ~/.pnpm-store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-v2
-          restore-keys: |
-            pnpm-${{ runner.os }}-
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
 
       # Installer les dépendances
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --force
-
-      # Vérifier la version de Prettier
-      - name: Check Prettier version
-        run: pnpm exec prettier --version
+        run: pnpm install --frozen-lockfile
 
       # Vérification du format
       - name: Run code formatter check
@@ -53,24 +44,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-
+      # Installer pnpm
       - name: Install pnpm
-        run: npm install -g pnpm
+        uses: pnpm/action-setup@v4
 
-      - name: Cache pnpm
-        uses: actions/cache@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
-          path: ~/.pnpm-store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-v2
-          restore-keys: |
-            pnpm-${{ runner.os }}-
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --force
+        run: pnpm install --frozen-lockfile
 
       - name: Run linter
         run: pnpm run lint
