@@ -35,7 +35,8 @@ export class LocataireService {
         return subQuery
           .select('COALESCE(SUM(e.amountDue), 0)', 'totalDue')
           .from('echeances_loyer', 'e')
-          .where('e.locataireId = locataire.id');
+          .where('e.locataireId = locataire.id')
+          .andWhere("e.monthKey <= TO_CHAR(NOW(), 'YYYY-MM')");
       }, 'locataire_totalDue')
       .whereInIds(locataireIds)
       .getRawMany();
@@ -73,7 +74,11 @@ export class LocataireService {
 
     const queryBuilder = this.locataireRepository
       .createQueryBuilder('locataire')
-      .leftJoinAndSelect('locataire.echeanceLoyer', 'echeanceLoyer')
+      .leftJoinAndSelect(
+        'locataire.echeanceLoyer',
+        'echeanceLoyer',
+        "echeanceLoyer.monthKey <= TO_CHAR(NOW(), 'YYYY-MM')",
+      )
       .leftJoinAndSelect('locataire.logement', 'logement')
       .where('1=1')
       // .andWhere(
@@ -107,10 +112,16 @@ export class LocataireService {
   }
 
   async findOne(id: string) {
-    const locataire = await this.locataireRepository.findOne({
-      where: { id },
-      relations: ['echeanceLoyer', 'logement'],
-    });
+    const locataire = await this.locataireRepository
+      .createQueryBuilder('locataire')
+      .leftJoinAndSelect(
+        'locataire.echeanceLoyer',
+        'echeanceLoyer',
+        "echeanceLoyer.monthKey <= TO_CHAR(NOW(), 'YYYY-MM')",
+      )
+      .leftJoinAndSelect('locataire.logement', 'logement')
+      .where('locataire.id = :id', { id })
+      .getOne();
 
     if (!locataire) {
       throw new HttpException('Locataire introuvable', 404);
