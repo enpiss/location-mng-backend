@@ -7,6 +7,7 @@ import { Locataire } from './entities/locataire.entity';
 import { SearchLocataireDto } from './dto/search-locataire.dto';
 import { PageDto } from '../../common/dto/page.dto';
 import { User } from '../user/entities/user.entity';
+import { LocataireEvent } from './events/locataire.event';
 
 @Injectable()
 export class LocataireService {
@@ -14,6 +15,7 @@ export class LocataireService {
   constructor(
     @InjectRepository(Locataire)
     private locataireRepository: Repository<Locataire>,
+    private locataireEvent: LocataireEvent,
   ) {}
 
   private async enrichLocatairesWithTotalDue(locataires: Locataire[]) {
@@ -47,14 +49,23 @@ export class LocataireService {
     });
   }
 
-  create(createLocataireDto: CreateLocataireDto, proprietaire: User) {
-    const locataire = this.locataireRepository.create({
+  async create(createLocataireDto: CreateLocataireDto, proprietaire: User) {
+    const locataireData = this.locataireRepository.create({
       ...createLocataireDto,
       proprietaire: { id: proprietaire.id },
       logement: { id: createLocataireDto.logementId },
     });
-    this.logger.log({ message: 'Creating new locataire', locataire });
-    return this.locataireRepository.save(locataire);
+
+    this.logger.log({
+      message: 'Creating new locataire',
+      locataire: locataireData,
+    });
+
+    const locataire = await this.locataireRepository.save(locataireData);
+
+    this.locataireEvent.created({ locataire });
+
+    return locataire;
   }
 
   async findAll(pageOptionsDto: SearchLocataireDto) {
@@ -115,16 +126,29 @@ export class LocataireService {
   }
 
   async update(id: string, updateLocataireDto: UpdateLocataireDto) {
-    const { logementId = null, ...rest } = updateLocataireDto;
-    const result = await this.locataireRepository.update(id, {
+    const { logementId = undefined, ...rest } = updateLocataireDto;
+    const locataire = await this.findOne(id);
+    const previousLogementId = locataire.logement.id;
+
+    // Mettre a jour et sauvegarder
+    Object.assign(locataire, {
       ...rest,
-      logement: logementId ? { id: logementId } : undefined,
+      logement:
+        logementId !== undefined
+          ? logementId !== null
+            ? { id: logementId }
+            : null
+          : locataire.logement,
     });
-    if (result.affected && result.affected > 0) {
-      return this.findOne(id);
-    } else {
-      throw new HttpException('Locataire introuvable', 404);
-    }
+
+    const locataireUpdated = await this.locataireRepository.save(locataire);
+
+    this.locataireEvent.updated({
+      locataire: locataireUpdated,
+      previousLogementId,
+    });
+
+    return locataireUpdated;
   }
 
   async remove(id: string) {

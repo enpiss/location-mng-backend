@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateEcheancesLoyerDto } from './dto/create-echeances-loyer.dto';
 import { UpdateEcheancesLoyerDto } from './dto/update-echeances-loyer.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Between, In, IsNull, Not, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import {
   EcheanceLoyer,
   EcheanceStatus,
@@ -21,6 +21,58 @@ export class EcheancesLoyerService {
     @InjectRepository(Locataire)
     private readonly locataireRepository: Repository<Locataire>,
   ) {}
+
+  async initialiserEcheancesPourLocataire(
+    locataireId: string,
+    monthsCount: number = 3,
+  ) {
+    const locataire = await this.locataireRepository.findOne({
+      where: { id: locataireId },
+      relations: ['logement'],
+    });
+
+    if (!locataire) {
+      throw new NotFoundException(`Locataire ${locataireId} introuvable`);
+    }
+
+    const currentDate = new Date();
+    const echeances: EcheanceLoyer[] = [];
+
+    // Générer les échéances pour les N mois
+    for (let i = 0; i < monthsCount; i++) {
+      const date = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + i,
+        1,
+      );
+      const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, '0')}`;
+
+      const echeance = new EcheanceLoyer();
+      echeance.amountDue = locataire.logement.rentAmount;
+      echeance.amountPaid = 0;
+      echeance.monthKey = monthKey;
+      echeance.locataire = locataire;
+
+      echeances.push(echeance);
+    }
+
+    // Insérer ou mettre à jour en une seule requête
+    await this.echeanceLoyerRepository
+      .createQueryBuilder()
+      .insert()
+      .into(EcheanceLoyer)
+      .values(echeances)
+      .orUpdate(['amountDue', 'amountPaid'], ['locataireId', 'monthKey'])
+      .execute();
+
+    this.logger.log(
+      `${monthsCount} échéances créées ou mises à jour pour ${locataire.fullName}`,
+    );
+
+    return echeances;
+  }
 
   async create(createEcheancesLoyerDto: CreateEcheancesLoyerDto) {
     this.logger.log(
@@ -78,6 +130,69 @@ export class EcheancesLoyerService {
     return echeanceResult;
   }
 
+  async createEcheancesForMultipleLocataires(locataireIds?: string[]) {
+    this.logger.log('Création batch des échéances de loyer...');
+
+    const currentDate = new Date();
+    const monthKey = `${currentDate.getFullYear()}-${(
+      currentDate.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, '0')}`;
+
+    // Récupérer les locataires avec logement
+    const query = this.locataireRepository
+      .createQueryBuilder('locataire')
+      .leftJoinAndSelect('locataire.logement', 'logement')
+      .where('logement.id IS NOT NULL')
+      .where('locataire.deletedAt IS NULL');
+
+    if (locataireIds && locataireIds.length > 0) {
+      query.andWhere('locataire.id IN (:...locataireIds)', { locataireIds });
+    }
+
+    const locataires = await query.getMany();
+
+    if (locataires.length === 0) {
+      this.logger.warn('Aucun locataire avec logement trouvé');
+      return [];
+    }
+
+    // Construire toutes les échéances en mémoire
+    const echeances: EcheanceLoyer[] = locataires.map((locataire) => {
+      const echeance = new EcheanceLoyer();
+      echeance.amountDue = locataire.logement.rentAmount;
+      echeance.amountPaid = 0;
+      echeance.monthKey = monthKey;
+      echeance.locataire = locataire;
+      return echeance;
+    });
+
+    // Insérer ou mettre à jour en une seule requête
+    await this.echeanceLoyerRepository
+      .createQueryBuilder()
+      .insert()
+      .into(EcheanceLoyer)
+      .values(echeances)
+      .orUpdate(['amountDue', 'amountPaid'], ['monthKey', 'locataireId'], {
+        overwriteCondition: {
+          where:
+            '"echeances_loyer"."amountDue" <> :amountDue OR "echeances_loyer"."amountPaid" <> :amountPaid',
+          parameters: {
+            amountDue: echeances[0]?.amountDue ?? 0,
+            amountPaid: 0,
+          },
+        },
+      })
+      .execute();
+
+    this.logger.log(
+      `${locataires.length} échéances créées pour le mois ${monthKey}`,
+    );
+
+    return echeances;
+  }
+
   @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
   async cronCreateEcheancesLoyer() {
     const currentDate = new Date();
@@ -87,27 +202,10 @@ export class EcheancesLoyerService {
     });
 
     this.logger.log(
-      ` Cron job: Creation échéances loyer mois ${currentMonth}...`,
+      `Cron job: Création des échéances de loyer pour ${currentMonth}...`,
     );
 
-    const locataires = await this.locataireRepository.find({
-      relations: ['logement'],
-      where: {
-        logement: Not(IsNull()),
-      },
-    });
-
-    for (const locataire of locataires) {
-      void this.create({
-        amountDue: locataire.logement.rentAmount,
-        amountPaid: 0,
-        locataireId: locataire.id,
-        monthKey: `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1)
-          .toString()
-          .padStart(2, '0')}`,
-      });
-      this.logger.log('Échéance créée pour locataire ' + locataire.fullName);
-    }
+    await this.createEcheancesForMultipleLocataires();
   }
 
   findAll(searchEcheanceLoyerDto: SearchEcheanceLoyerDto) {

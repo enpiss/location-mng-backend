@@ -40,5 +40,5 @@ export class CreateLocataireDto {
     example: 'uuid-of-logement',
   })
   @IsUUID('4', { message: 'Le logementId doit être un UUID valide' })
-  logementId?: string;
+  logementId?: string = undefined;
 }

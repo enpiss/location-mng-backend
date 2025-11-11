@@ -29,7 +29,6 @@ export class LogementController {
 
   @Post()
   create(@Req() req: Request, @Body() createLogementDto: CreateLogementDto) {
-    console.log('Creating logement with data:', req);
     createLogementDto.ownerId = (req.user as User).id;
     return this.logementService.create(createLogementDto);
   }
