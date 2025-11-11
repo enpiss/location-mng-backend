@@ -115,11 +115,10 @@ export class LocataireService {
   }
 
   async update(id: string, updateLocataireDto: UpdateLocataireDto) {
+    const { logementId = null, ...rest } = updateLocataireDto;
     const result = await this.locataireRepository.update(id, {
-      ...updateLocataireDto,
-      logement: updateLocataireDto.logementId
-        ? { id: updateLocataireDto.logementId }
-        : undefined,
+      ...rest,
+      logement: logementId ? { id: logementId } : undefined,
     });
     if (result.affected && result.affected > 0) {
       return this.findOne(id);
