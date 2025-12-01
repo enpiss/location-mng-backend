@@ -18,16 +18,19 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  comparePasswords(plainTextPassword: string, hashedPassword: string): boolean {
-    return bcrypt.compareSync(plainTextPassword, hashedPassword);
+  async comparePasswords(
+    plainTextPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return await bcrypt.compare(plainTextPassword, hashedPassword);
   }
 
   async validateUser(email: string, pass: string): Promise<User> {
-    const user = await this.usersService.findOneByEmail(email);
+    const user = await this.usersService.findOneByEmailOrPhone(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const isMatch = user ? this.comparePasswords(pass, user.password) : false;
+    const isMatch = await this.comparePasswords(pass, user.password);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -47,19 +50,20 @@ export class AuthService {
   }
 
   async register(registerRequestDto: RegisterRequestDto): Promise<AccessToken> {
-    const existingUser = await this.usersService.findOneByEmail(
+    const existingUser = await this.usersService.findOneByEmailOrPhone(
       registerRequestDto.email,
+      registerRequestDto.phone,
     );
     if (existingUser) {
-      throw new UnauthorizedException('Email already in use');
+      throw new UnauthorizedException(
+        'User with given email or phone already exists',
+      );
     }
-    const hashedPassword = await this.usersService.hashString(
-      registerRequestDto.password,
-    );
+
     const newUser = await this.usersService.create({
       ...registerRequestDto,
-      password: hashedPassword,
     });
+
     return this.login(newUser);
   }
 }
